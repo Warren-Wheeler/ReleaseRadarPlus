@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  discord-spotify-bot:
+    build: .
+    image: discord-spotify-bot:py38
+    restart: unless-stopped
+    env_file: .env
+    secrets:
+      - DISCORD_BOT_TOKEN
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "python", "healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+secrets:
+  DISCORD_BOT_TOKEN:
+    file: ./secrets/DISCORD_BOT_TOKEN
+  SPOTIFY_CLIENT_ID:
+    file: ./secrets/SPOTIFY_CLIENT_ID
+  SPOTIFY_CLIENT_SECRET:
+    file: ./secrets/SPOTIFY_CLIENT_SECRET

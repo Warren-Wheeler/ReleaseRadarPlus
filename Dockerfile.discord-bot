@@ -1,0 +1,23 @@
+# Dockerfile.discord-bot
+FROM python:3.8-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# System deps (tzdata is nice for logs, not strictly required)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the bot source
+COPY . /app
+
+# Default: data dir is /data (from docker-compose volume)
+# DB path is resolved via config.py (Settings.data_dir & db_path)
+CMD ["python", "bot.py"]

@@ -6,6 +6,7 @@ Entry point: initializes config, cache, DB, Spotify client, Discord bot, and sch
 import asyncio
 import logging
 import signal
+import os
 from typing import Optional
 
 import discord
@@ -31,10 +32,12 @@ async def main():
 
     # --- config, cache, db, spotify ---
     settings: Settings = load_config()
+    LOG.info("Using data_dir=%s db_path=%s", settings.data_dir, settings.db_path)
+
     install_http_cache(db_path=settings.cache_path, ttl_days=7)
 
     db = Database(settings)
-    db.init_schema()
+    db.init_schema()  # still safe & idempotent, even though db-container also ensures schema
 
     sp = SpotifyClient(settings)
 
@@ -56,6 +59,8 @@ async def main():
 
     # --- scheduler ---
     scheduler = make_scheduler()
+    backup_url = os.getenv("DB_BACKUP_URL", "").strip() or None
+
     schedule_weekly_release_job(
         scheduler=scheduler,
         settings=settings,
@@ -63,6 +68,7 @@ async def main():
         sp=sp,
         bot=bot,
         clear_cache_fn=clear_http_cache,
+        backup_url=backup_url,
     )
     scheduler.start()
 
@@ -91,6 +97,7 @@ async def main():
         LOG.info("Closing Spotify client...")
         sp.close()
         LOG.info("Closed.")
+
 
 if __name__ == "__main__":
     try:

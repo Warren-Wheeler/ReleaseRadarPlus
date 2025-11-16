@@ -1,0 +1,17 @@
+FROM python:3.8-slim
+
+# Install dependencies
+RUN pip install flask
+
+# Create working directory
+WORKDIR /app
+
+# Copy service scripts into container
+COPY db_service.py /app/db_service.py
+COPY restore_backup.py /app/restore_backup.py
+
+# Ensure data + backup directories exist in container (host-mounted)
+VOLUME ["/data", "/backups"]
+
+# Start the Flask-based DB service
+CMD ["python", "db_service.py"]

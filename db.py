@@ -78,6 +78,14 @@ class Database:
             """
         )
 
+    def get_all_guild_ids(self) -> List[int]:
+        """
+        Return all guild IDs that have a guild_settings row.
+        Used by the per-minute scheduler.
+        """
+        cur = self._conn.execute("SELECT guild_id FROM guild_settings;")
+        return [row["guild_id"] for row in cur.fetchall()]
+
     # --- guild settings ---
     def upsert_guild_settings(
         self,
